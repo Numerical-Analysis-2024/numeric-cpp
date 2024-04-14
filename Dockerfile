@@ -24,6 +24,7 @@ ARG PACKAGES="\
   cmake \
   catch2-v2 \
   doxygen \
+  graphviz \
   "
 
 RUN sudo pacman-key --init && \

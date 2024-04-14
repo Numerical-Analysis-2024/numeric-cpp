@@ -54,7 +54,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile
+          file: ./numeric-cpp/Dockerfile
           platforms: linux/amd64
           push: true
           tags: ghcr.io/numerical-analysis-2024/numeric-cpp/cpp:latest
