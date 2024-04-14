@@ -21,8 +21,9 @@ RUN ln -s /usr/share/zoneinfo/America/Lima /etc/localtime && \
 USER gitpod
 
 ARG PACKAGES="\
-  cmake \
   catch2-v2 \
+  clang \
+  cmake \
   doxygen \
   git \
   graphviz \
