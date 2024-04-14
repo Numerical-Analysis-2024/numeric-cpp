@@ -1,0 +1,83 @@
+name: Publish Docker image
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - Dockerfile
+  pull_request:
+    branches: [main]
+
+jobs:
+  push_image:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 34000
+          remove-dotnet: "true"
+          remove-android: "true"
+          remove-haskell: "true"
+          remove-codeql: "true"
+
+      - name: Partial Clone
+        shell: bash
+        run: |
+          REPO="https://${GITHUB_ACTOR}:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git"
+          git config --global user.email github-actions@github.com
+          git config --global user.name github-actions
+          git clone -q --filter=blob:none --no-checkout --depth=1 --sparse $REPO && cd numeric-cpp
+          git sparse-checkout init --cone
+          git checkout
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-numeric-cpp-cache
+          key: ${{ runner.os }}-buildx-numeric-cpp-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-numeric-cpp-
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GH_USERNAME }}
+          password: ${{ secrets.CR_PAT }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ghcr.io/numerical-analysis-2024/numeric-cpp/cpp:latest
+          cache-from: type=local,src=/tmp/.buildx-numeric-cpp-cache
+          cache-to: type=local,mode=max,dest=/tmp/.buildx-main-cache
+
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-numeric-cpp-cache
+          mv /tmp/.buildx-main-cache /tmp/.buildx-numeric-cpp-cache
+
+      - name: Scan for vulnerabilities
+        uses: crazy-max/ghaction-container-scan@master
+        with:
+          image: ghcr.io/numerical-analysis-2024/numeric-cpp/cpp:latest
+          annotations: true
+          severity_threshold: CRITICAL
+          dockerfile: ./Dockerfile
+
+      - name: Prune untagged images
+        uses: carlosal1015/ghcr-delete-image-action@main
+        with:
+          owner: numerical-analysis-2024
+          name: numeric-cpp/cpp
+          token: ${{ secrets.PAT }}
+          untagged-keep-latest: 2

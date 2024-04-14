@@ -1,0 +1,6 @@
+image: ghcr.io/numerical-analysis-2024/numeric-cpp/cpp
+
+vscode:
+  extensions:
+    - twxs.cmake
+    - ms-vscode.cmake-tools
