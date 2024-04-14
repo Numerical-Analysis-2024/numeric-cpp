@@ -12,7 +12,7 @@ Building numeric requires the following software installed:
 * A C++17-compliant compiler
 * CMake `>= 3.9`
 * Doxygen (optional, documentation building is skipped if missing)
-* The testing framework [Catch2](https://github.com/catchorg/Catch2) for building the test suite
+* The testing framework [Catch2](https://archlinux.org/packages/extra/any/catch2-v2) for building the test suite
 
 # Building numeric
 
